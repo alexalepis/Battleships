@@ -8,7 +8,7 @@ defmodule Player do
     |> Enum.reduce( Board.new_board(n), fn(x, acc) -> random_ship_placement(acc, x, n) end ) 
     # |> IO.inspect
 
-    UI.print(my_board)
+    # UI.print(my_board, n)
   end
 
 
