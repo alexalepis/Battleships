@@ -6,9 +6,8 @@ defmodule Player do
     my_board =
     Ships.fleet_creation
     |> Enum.reduce( Board.new_board(n), fn(x, acc) -> random_ship_placement(acc, x, n) end ) 
-    # |> IO.inspect
-
-    # UI.print(my_board, n)
+    
+    UI.print(my_board, n)
   end
 
 
