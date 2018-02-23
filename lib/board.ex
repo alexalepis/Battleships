@@ -1,10 +1,12 @@
 defmodule Board do
-  # def new_board(n), do: new_board(0,0,n-1,%{})
-  # defp new_board(n, n, n,map), do: Map.put(map, {n,n}, "-")
-  # defp new_board(x, y, n, map) when y<n, do: new_board(x, y+1, n, Map.put(map, {x,y}, "-"))
-  # defp new_board(x, y, n, map) when y==n, do: new_board(x+1, 0, n, Map.put(map, {x,y}, "-"))
+@moduledoc """
+    Board creates and manipulates the playing boards
+  """
 
-  # credits stavrina 
+
+@doc """
+    Creates a new board sized sz x sz, containing the coordinates of each place on the board as the key and an atom :no_value as value. 
+"""
   def new_board(sz) do
     y = for x<-1..sz ,y<-1..sz ,do: {{x,y} , {:no_value}}
     Map.new(y)
