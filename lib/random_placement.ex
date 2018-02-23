@@ -1,14 +1,15 @@
-defmodule Player do
+defmodule Random.Placement do
   
-  def add_player(player_id, n) do
-    enemy_board=Board.new_board(n)
+  def new(board, fleet, n) do
 
-    my_board = Ships.fleet_creation |> Enum.reduce( Board.new_board(n), fn(x, acc) -> random_ship_placement(acc, x, n, 0) end ) 
+    my_board = 
+    fleet 
+    |> Enum.reduce( board, fn(x, acc) -> random_ship_placement(acc, x, n, 0) end ) 
+   
     case my_board do
-      %{value: :nil} -> IO.puts "ERROR: Failed placement"
-      _ -> UI.print(my_board, n)
+      %{value: :nil}  -> IO.puts "ERROR: Failed placement"
+      _               -> UI.print(my_board, n)
     end
-        
     
   end
 
@@ -31,7 +32,7 @@ defmodule Player do
   defp valid_position?(_, _, _,board, {_, 0}, failed_placement), do: {true, board} 
   defp valid_position?(0, x, y, board, {ship_name, ship_length}, failed_placement) do
     case Map.get(board,{x,y}) do
-      {"-"} -> valid_position?(0, x+1, y, Map.replace!(board, {x,y}, {ship_name}), {ship_name, ship_length-1}, failed_placement)
+      {:no_value} -> valid_position?(0, x+1, y, Map.replace!(board, {x,y}, {ship_name}), {ship_name, ship_length-1}, failed_placement)
       _     -> {false, failed_placement}
     end
   end

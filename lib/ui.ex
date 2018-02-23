@@ -4,6 +4,7 @@ defmodule UI do
     |> Enum.sort 
     |> Enum.map(fn{k,v}-> replace(v) end)
     |> Enum.chunk_every(n)
+    |> IO.inspect
 
   end
 
