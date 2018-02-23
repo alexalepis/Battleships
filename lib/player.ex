@@ -3,11 +3,13 @@ defmodule Player do
   def add_player(player_id, n) do
     enemy_board=Board.new_board(n)
 
-    my_board =
-    Ships.fleet_creation
-    |> Enum.reduce( Board.new_board(n), fn(x, acc) -> random_ship_placement(acc, x, n, 0) end ) 
-    
-    # UI.print(my_board, n)
+    my_board = Ships.fleet_creation |> Enum.reduce( Board.new_board(n), fn(x, acc) -> random_ship_placement(acc, x, n, 0) end ) 
+    case my_board do
+      %{} -> IO.puts "ERROR: Failed placement"
+      _   -> my_board
+    end
+        
+    UI.print(my_board, n)
   end
 
 
@@ -17,7 +19,7 @@ defmodule Player do
     
     case valid_position?(orientation, x, y, board, {ship_name, ship_length}, failed_placement ) do
       {true, board} -> board
-      {false, 100 } -> "ERROR: Failed placement of ship #{ship_name}" |> IO.inspect
+      {false, 100 } -> %{}
       {false, _   } -> random_ship_placement(board, {ship_name, ship_length}, n, failed_placement + 1)
     end
   end
