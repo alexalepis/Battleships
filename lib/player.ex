@@ -5,11 +5,11 @@ defmodule Player do
 
     my_board = Ships.fleet_creation |> Enum.reduce( Board.new_board(n), fn(x, acc) -> random_ship_placement(acc, x, n, 0) end ) 
     case my_board do
-      %{} -> IO.puts "ERROR: Failed placement"
-      _   -> my_board
+      %{value: :nil} -> IO.puts "ERROR: Failed placement"
+      _ -> UI.print(my_board, n)
     end
         
-    UI.print(my_board, n)
+    
   end
 
 
@@ -19,7 +19,7 @@ defmodule Player do
     
     case valid_position?(orientation, x, y, board, {ship_name, ship_length}, failed_placement ) do
       {true, board} -> board
-      {false, 100 } -> %{}
+      {false, 1000000 } -> %{value: :nil}
       {false, _   } -> random_ship_placement(board, {ship_name, ship_length}, n, failed_placement + 1)
     end
   end
