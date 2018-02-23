@@ -1,5 +1,5 @@
 defmodule Ships do
-  @ship_length [2,1,3]
+  @ship_length [1,2,3]
 
   def fleet_creation(ship_length \\ ship_length= @ship_length) do
     ship_length    
