@@ -16,7 +16,7 @@ defmodule BoardTest do
   end
   
   test "check that all values are properly initialized" do
-    assert Enum.all?(Board.new_board(5), fn{k,v} -> v=={:no_value} end) == true
+    assert Enum.all?(Board.new_board(5), fn{_k,v} -> v=={:no_value} end) == true
   end
  
 end
