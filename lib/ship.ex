@@ -15,5 +15,5 @@ defmodule Ship do
      length: length
    }
   end
-
+  
 end

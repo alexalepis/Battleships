@@ -19,9 +19,9 @@ defmodule Random.Placement do
     {orientation, x, y} = random_position(ship_length, n)
     
     case valid_position?(orientation, x, y, board, {ship_name, ship_length}, failed_placement ) do
-      {true, board} -> board
+      {true, board}     -> board
       {false, 1000000 } -> %{value: :nil}
-      {false, _   } -> random_ship_placement(board, {ship_name, ship_length}, n, failed_placement + 1)
+      {false, _   }     -> random_ship_placement(board, {ship_name, ship_length}, n, failed_placement + 1)
     end
   end
 
