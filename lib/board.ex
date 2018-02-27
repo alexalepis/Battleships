@@ -13,12 +13,17 @@ defstruct [:map, :n]
     %Board{ map: Map.new(y), n: n}
   end
 
+  @doc """
+    Takes a board, an x and an y as parameters and returns the value of the position (x,y) in the board. 
+  """
   def get_position_value(board, x, y) do
     board.map
     |> Map.get({x,y})
   end
 
-  
+  @doc """
+    Takes a board, an x, a y and a value as parameters and returns the board having replaced the value at the position (x,y) with the given value. 
+  """
   def replace_value(board, x, y, value) do
 
     new_map = board.map

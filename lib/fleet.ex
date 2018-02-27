@@ -1,19 +1,26 @@
 defmodule Fleet do
-    @moduledoc """
-      Ships creates and manipulates the ships the game or the player commands it to.
-    """
+@moduledoc """
+ Fleet creates and manipulates fleets of ships.
+"""
     defstruct [:name, :ships]
   
-  @doc """
-      Returns a new ship with the name and length that are passed as parameters.
-  """
+    @doc """
+      Returns a new, empty fleet with the name passed as the parameter.
+    """
     def new(name) do
        %Fleet{name: name, ships: []}
     end
 
+    @doc """
+      Adds the ship[struct] given as parameter to the fleet given as parameter and returns the new fleet
+    """
     def add_ship(fleet, ship) do
         %Fleet{fleet | ships: [ship | fleet.ships]}
     end
+
+    @doc """
+      Adds a ship with the parameters given as parameters, to the given fleet.
+    """
     def add_ship(fleet, id, name, length) do
         ship = Ship.new(id, name, length)
         %Fleet{fleet | ships: [ship | fleet.ships]}
@@ -21,9 +28,8 @@ defmodule Fleet do
 
   
     @doc """
-     Automatically creates a fleet given a list of ship lengths (i.e: [2,3,4] creates 3 ships with lengths 2,3 and 4 respectivelly.)
-     If no parameter is passed it takes as default the @ship_length list and creates ships accordingly.
-  """
+     Automatically creates a fleet.
+    """
     def default_fleet do
       
         new("default_fleet")
