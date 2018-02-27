@@ -1,9 +1,20 @@
 defmodule Game do
 
-    defstruct [:game_id, :player1_id, :player2_id, :player1_fleet, :player2_fleet, :player1_board, :player2_board, :current_player, :winner]
+    # defstruct :game_id, :player1, :player2
+    
+    # def new(player1, player2) do
+        
+    # end
+    # def new(game_id, player1, player2) do
+    #     %Game{ game_id: game_id,
+    #            player1: player1,
+    #            player2: player2,
+    #            }
+    # end
+    
 
    
-    
+
     # def new(n) do
     #     game_data=%Game{        
     #         game_id: : {:game, :erlang.unique_integer()},

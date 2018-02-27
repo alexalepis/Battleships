@@ -17,7 +17,6 @@ defstruct [:map, :n]
     board.map
     |> Map.get({x,y})
   end
-
   
   def replace_value(board, x, y, value) do
 

@@ -1,9 +1,10 @@
 defmodule UI do
-  def print(board, n) do
-    board 
+  def print(board) do
+    
+    board.map 
     |> Enum.sort 
     |> Enum.map(fn{k,v}-> replace(v) end)
-    |> Enum.chunk_every(n)
+    |> Enum.chunk_every(board.n)
     |> IO.inspect
 
   end
