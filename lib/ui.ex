@@ -3,7 +3,7 @@ defmodule UI do
     
     board.map 
     |> Enum.sort 
-    |> Enum.map(fn{k,v}-> replace(v) end)
+    |> Enum.map(fn{_,v}-> replace(v) end)
     |> Enum.chunk_every(board.n)
     |> IO.inspect
 
