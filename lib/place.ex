@@ -1,22 +1,18 @@
 defmodule Place do
+
+    @orientation {:vertical, :horizontal}
+
+    def custom(ship, board, x, y, orientation) do
+        valid_position?(ship, board, x, y, orientation)          
+    end
     
     def random(ship, board) do
-        case rand(2) do
-            1 -> ship(ship, board, rand(board.n - ship.length), rand(board.n - ship.length),:vertical)
-            2 -> ship(ship, board, rand(board.n - ship.length), rand(board.n - ship.length),:horizontal)
-        end
+         valid_position?(ship, board, rand(board.n - ship.length), rand(board.n - ship.length),elem(@orientation, rand(2)-1))        
     end
 
     def rand(n), do: :rand.uniform(n)
 
-    def ship(ship, board, x, y, orientation ) do
-        
-        case valid_position?(ship, board, x, y, orientation ) do
-            {:true,  board}     -> board
-            {:false, message}   -> IO.puts message
-                                   board
-        end
-    end
+
 
     def valid_position?(%Ship{length: 0}, board, _, _, _), do: {:true, board}
 

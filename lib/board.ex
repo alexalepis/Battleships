@@ -14,7 +14,6 @@ defstruct [:map, :n]
   end
 
   def get_position_value(board, x, y) do
-
     board.map
     |> Map.get({x,y})
   end
