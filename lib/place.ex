@@ -2,42 +2,50 @@ defmodule Place do
 
     @orientation {:vertical, :horizontal}
 
-    def custom(ship, board, x, y, orientation), do: valid_position?(ship, board, x, y, orientation)
+    def custom(ship, board, x, y, orientation) do
+
+        with true <- in_bounds?(ship, board, x, y, orientation),
+             true <- free_position?(ship, board, x, y, orientation),
+             true <- Enum.any?(board.map, fn{_, value}-> value!={ship.id} end) 
+        do
+            {:ok, Board.place_ship(ship, board, x, y, orientation)}
+        else
+            false -> {:error, board}
+        end
+    end
+
+    def random(ship, {:ok, %Board{}=board}), do: random( ship, {:ok, %Board{}=board}, 0)
+    def random(_, {:error, board}),          do: {:error, board}
+
+    defp random(_, {_, board}, 100),    do: {:error, board}
+    defp random(_, {:error, board}, _), do: {:error, board}
+    defp random(ship, {:ok, %Board{}=board}, fail_cnt) do
+
+        with x = rand(board.n - ship.length),
+             y = rand(board.n - ship.length),
+             orientation = elem(@orientation, rand(2)-1),
+             true <- in_bounds?(ship, board, x, y, orientation),
+             true <- free_position?(ship, board, x, y, orientation)
+        do
+            {:ok, Board.place_ship(ship, board, x, y, orientation)}
+        else
+            false -> random(ship, {:ok, %Board{}=board}, fail_cnt + 1)
+        end
+    end
+
+    def in_bounds?(ship, board, x, y, :horizontal ), do: x + ship.length <= board.n 
+    def in_bounds?(ship, board, x, y, :vertical   ), do: y + ship.length <= board.n 
     
-    def random(ship, {_, board=%Board{}, _}) do
-        place_result = valid_position?(ship, board, rand(board.n - ship.length), rand(board.n - ship.length), elem(@orientation, rand(2)-1))     
-        case place_result do
-            {:false, _, _} -> random(ship, {:true, board, ""}) 
-            _              -> place_result
-        end      
+    def free_position?(ship, board, x, y, :horizontal) do
+        x..ship.length + x - 1
+        |> Enum.all?(fn(x) -> Board.get_position_value(board, x, y)=={:no_value} end)
     end
-    def random(_, {:false, board, message}), do: {:false, board, message}
+    def free_position?(ship, board, x, y, :vertical) do
+        y..ship.length + y - 1
+        |> Enum.all?(fn(y) -> Board.get_position_value(board, x, y)=={:no_value} end)
+    end
 
+    defp rand(n) when n<=0, do: 1
     defp rand(n), do: :rand.uniform(n)
-
-    defp valid_position?(%Ship{length: 0}, board, _, _, _), do: {:true, board, "Success"}
-    defp valid_position?(ship, board, x, y, :vertical) do
-        case Board.get_position_value(board, x, y) do
-            nil      -> {:false, board, "coordinates not available"}
-            {:no_value} -> valid_position?( %{ship | length: ship.length-1}, 
-                                            Board.replace_value(board, x, y, ship.id),
-                                            x+1,
-                                            y,
-                                            :vertical  )
-            {_}         -> {:false, board, "place taken"}
-
-        end
-    end
-    defp valid_position?(ship, board, x, y, :horizontal) do
-        case Board.get_position_value(board, x, y) do
-            {:nil}      -> {:false, board, "coordinates not available"}
-            {:no_value} -> valid_position?( %{ship | length: ship.length-1}, 
-                                            Board.replace_value(board, x, y, ship.id),
-                                            x,
-                                            y+1,
-                                            :horizontal  )
-            {_}         -> {:false, board, "place taken"}
-        end
-    end
 
 end
