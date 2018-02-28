@@ -1,15 +1,15 @@
 defmodule UI do
   def print(board) do
     
-    board.map 
+    y = for x <- 1..board.n, y <- 1..board.n, do: {{x, y}, 0}
+    
+    Map.new(y)
+    |> Map.merge(board.map)
     |> Enum.sort 
-    |> Enum.map(fn{_,v}-> replace(v) end)
+    |> Enum.map(fn{_,v}-> v end)
     |> Enum.chunk_every(board.n)
     |> IO.inspect
 
   end
-
-  def replace({:no_value}), do: 0
-  def replace({number}),    do: number
     
 end

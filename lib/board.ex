@@ -10,12 +10,7 @@ defmodule Board do
     Creates a new board sized sz x sz, containing the coordinates of each place on the board as the key and an atom :no_value as value. 
   """
   def new(n) do
-    y =
-      for x <- 1..n,
-          y <- 1..n,
-          do: {{x, y}, {:no_value}}
-
-    %Board{map: Map.new(y), n: n}
+    %Board{map: Map.new, n: n}
   end
 
   @doc """
@@ -29,7 +24,15 @@ defmodule Board do
   def replace_value(board, x, y, value) do
     new_map =
       board.map
-      |> Map.replace!({x, y}, {value})
+      |> Map.replace!({x, y}, value)
+
+    %{board | map: new_map}
+  end
+
+  def add_value(board, x, y, value) do
+    new_map =
+      board.map
+      |> Map.put_new({x, y}, value)
 
     %{board | map: new_map}
   end
@@ -39,12 +42,12 @@ defmodule Board do
   """
   def place_ship(ship, board, x, y, :horizontal) do
     x..(ship.length + x - 1)
-    |> Enum.reduce(board, fn x, board -> replace_value(board, x, y, ship.id) end)
+    |> Enum.reduce(board, fn x, board -> add_value(board, x, y, ship.id) end)
   end
 
   def place_ship(ship, board, x, y, :vertical) do
     y..(ship.length + y - 1)
-    |> Enum.reduce(board, fn y, board -> replace_value(board, x, y, ship.id) end)
+    |> Enum.reduce(board, fn y, board -> add_value(board, x, y, ship.id) end)
   end
 
   @doc """
@@ -52,8 +55,8 @@ defmodule Board do
   """
   def place_custom(ship, board, x, y, orientation) do
     with true <- in_bounds?(ship, board, x, y, orientation),
-         true <- free_position?(ship, board, x, y, orientation),
-         true <- Enum.any?(board.map, fn {_, value} -> value! = {ship.id} end) do
+         true <- is_already_placed?(ship, board),
+         true <- Enum.any?(board.map, fn {_, value} -> value != ship.id end) do
       {:ok, place_ship(ship, board, x, y, orientation)}
     else
       false -> {:error, board}
@@ -72,29 +75,39 @@ defmodule Board do
   defp place_random(_, {:error, board}, _), do: {:error, board}
 
   defp place_random(ship, {:ok, %Board{} = board}, fail_cnt) do
+
     with x = rand(board.n - ship.length),
          y = rand(board.n - ship.length),
          orientation = elem(@orientation, rand(2) - 1),
          true <- in_bounds?(ship, board, x, y, orientation),
-         true <- Enum.any?(board.map, fn {_, value} -> value! = {ship.id} end),
-         true <- free_position?(ship, board, x, y, orientation) do
+         true  <- is_already_placed?(ship, board),
+         true  <- free_position?(ship, board, x, y, orientation) 
+    do
       {:ok, place_ship(ship, board, x, y, orientation)}
     else
       false -> place_random(ship, {:ok, %Board{} = board}, fail_cnt + 1)
     end
   end
 
-  def in_bounds?(ship, board, x, y, :horizontal), do: x + ship.length <= board.n
-  def in_bounds?(ship, board, x, y, :vertical), do: y + ship.length <= board.n
+  def is_already_placed?(ship, board) do
+    Enum.any?(board.map, &(&1==ship.id)) |> IO.inspect
+    case Enum.any?(board.map, fn({_,value})-> value==ship.id end) do
+      true -> false
+      false-> true  
+    end
+  end
+
+  def in_bounds?(ship, board, x, _, :horizontal), do: x + ship.length <= board.n
+  def in_bounds?(ship, board, _, y, :vertical),   do: y + ship.length <= board.n
 
   def free_position?(ship, board, x, y, :horizontal) do
     x..(ship.length + x - 1)
-    |> Enum.all?(fn x -> get_position_value(board, x, y) == {:no_value} end)
+    |> Enum.all?(fn x -> get_position_value(board, x, y) == nil end)
   end
 
   def free_position?(ship, board, x, y, :vertical) do
     y..(ship.length + y - 1)
-    |> Enum.all?(fn y -> get_position_value(board, x, y) == {:no_value} end)
+    |> Enum.all?(fn y -> get_position_value(board, x, y) == nil end)
   end
 
   defp rand(n) when n <= 0, do: 1
