@@ -4,17 +4,10 @@ defmodule Place do
 
     def custom(ship, board, x, y, orientation), do: valid_position?(ship, board, x, y, orientation)
     
-    def random(ship, board=%Board{}) do
-        place_result = valid_position?(ship, board, rand(board.n - ship.length), rand(board.n - ship.length), elem(@orientation, rand(2)-1))     
-         case place_result do
-             {:false, _, _} -> random(ship, board) 
-             _              -> place_result
-         end   
-    end
     def random(ship, {_, board=%Board{}, _}) do
         place_result = valid_position?(ship, board, rand(board.n - ship.length), rand(board.n - ship.length), elem(@orientation, rand(2)-1))     
         case place_result do
-            {:false, _, _} -> random(ship, board) 
+            {:false, _, _} -> random(ship, {:true, board, ""}) 
             _              -> place_result
         end      
     end

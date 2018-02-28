@@ -15,7 +15,7 @@ defmodule Player do
 
         place_result =
         player.enemy_fleet.ships
-        |> Enum.reduce( player.my_board, fn(ship, board) -> Place.random(ship, board) end ) 
+        |> Enum.reduce( {:true, player.my_board, ""}, fn(ship, board) -> Place.random(ship, board) end ) 
         
         case place_result do
           {:false, board, message}  -> message

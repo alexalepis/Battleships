@@ -1,38 +1,42 @@
 defmodule Game do
 
-    # defstruct :game_id, :player1, :player2
+    defstruct [:game_id,:game_settings, :player1, :player2]
     
-    # def new(player1, player2) do
+    def new(game_id, game_settings) do
+        %Game{  game_id:        game_id,
+                game_settings:  game_settings,
+                player1:        nil,
+                player2:        nil,
+               }
+    end
+
+    def add_player(game, id, name) do
+        player = Player.new(id, name, game.game_settings.board, game.game_settings.fleet)
+
+        cond do
+            game.player1 == nil -> %{game| player1: player} 
+            game.player2 == nil -> %{game| player2: player} 
+        end
+         
+    end
+    
+end
+
+defmodule Game.Settings do
+
+    defstruct [:board, :random_place, :fleet]
+    
+    def new(board_size \\ 5, random_place \\ :true, default_fleet \\ :true ) do
         
-    # end
-    # def new(game_id, player1, player2) do
-    #     %Game{ game_id: game_id,
-    #            player1: player1,
-    #            player2: player2,
-    #            }
-    # end
-    
+        game_settings = %Game.Settings{ board: Board.new(board_size),
+                                        random_place: random_place}
+        case default_fleet do
+            :true -> %{game_settings | fleet: Fleet.default_fleet}
+            _     -> %{game_settings | fleet: nil}
+        end
+    end
 
-   
-
-    # def new(n) do
-    #     game_data=%Game{        
-    #         game_id: : {:game, :erlang.unique_integer()},
-    #         player1_id: :"player_#{:erlang.unique_integer()}",
-    #         player2_id: :"player_#{:erlang.unique_integer()}",
-    #         player1_fleet: Ships.fleet_creation,
-    #         player2_fleet: Ships.fleet_creation,
-    #         player1_board: Random.Placement.new(Board.new_board(n), Ships.fleet_creation, n),
-    #         player2_board: Random.Placement.new(Board.new_board(n), Ships.fleet_creation, n),
-
-    #         current_player: 1,
-    #         winner: nil
-    #     }
-
-    #    game_data.current_player
-
-    #     # %{game_data| player1_board: Random.Placement.new(Board.new_board(7), Ships.fleet_creation, 7)}
-      
-    # end
-
+    def add_fleet(game_settings, fleet) do
+        %{game_settings | fleet: fleet}
+    end
 end
