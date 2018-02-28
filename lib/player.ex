@@ -11,20 +11,24 @@ defmodule Player do
                 }
     end
 
-    def place(player, :random) do
-
-        place_result =
+    def place_random(player) do
         player.enemy_fleet.ships
-        |> Enum.reduce( {:true, player.my_board, ""}, fn(ship, board) -> Place.random(ship, board) end ) 
-        
-        case place_result do
-          {:false, board, message}  -> message
-          {:true,  board, message}  -> UI.print(board)
-        end
+        |> Enum.reduce( {:ok, player.my_board}, fn(ship, board) -> Board.place_random(ship, board) end ) 
+        |> is_placed?(player)
     end
 
-    def place(board, fleet, :custom) do
-        
+    def place_custom(player, ship, x, y, orientation) do
+        Board.place_custom(ship, player.my_board, x, y, orientation) 
+        |> is_placed?(player)
+    end
+
+    def is_placed?(place_result, player) do
+        case place_result do
+            {:error, _}     ->  IO.puts "Error placement"  
+                                player
+            {:ok,  board}   ->  UI.print(board)
+                                %{player | my_board: board}
+        end
     end
 
 end
