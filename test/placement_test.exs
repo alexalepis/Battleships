@@ -10,37 +10,12 @@ defmodule PlacementTest do
     board = Board.new 5
     fleet = Fleet.default_fleet
     ship  = List.last(fleet.ships)
-
-    assert Place.custom(ship, board, 1, 1, :horizontal)=={:true, %Board{
-      map: %{
-        {1, 1} => {1},
-        {1, 2} => {1},
-        {1, 3} => {:no_value},
-        {1, 4} => {:no_value},
-        {1, 5} => {:no_value},
-        {2, 1} => {:no_value},
-        {2, 2} => {:no_value},
-        {2, 3} => {:no_value},
-        {2, 4} => {:no_value},
-        {2, 5} => {:no_value},
-        {3, 1} => {:no_value},
-        {3, 2} => {:no_value},
-        {3, 3} => {:no_value},
-        {3, 4} => {:no_value},
-        {3, 5} => {:no_value},
-        {4, 1} => {:no_value},
-        {4, 2} => {:no_value},
-        {4, 3} => {:no_value},
-        {4, 4} => {:no_value},
-        {4, 5} => {:no_value},
-        {5, 1} => {:no_value},
-        {5, 2} => {:no_value},
-        {5, 3} => {:no_value},
-        {5, 4} => {:no_value},
-        {5, 5} => {:no_value}
-      },
-      n: 5
-    }}
+    {:true, %Board{map: map}, _} =Place.custom(ship, board, 1, 1, :horizontal)
+    Enum.each(map, fn
+      {{1,1},value} ->  assert value=={1}
+      {{1,2},value} ->  assert value=={1}
+      {{_,_},value} ->  assert value=={:no_value}
+    end)
   end
 
   test "check default ship placement (vertical)" do
