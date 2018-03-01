@@ -2,138 +2,84 @@ defmodule PlacementTest do
   use ExUnit.Case
   doctest Battleships  
 
-  def count_ship_coordinates(board), do: Enum.reduce(Map.values(board.map), 0,fn(x, acc) -> acc+check_if_empty(x) end)
-  def check_if_empty({:no_value}), do: 0
-  def check_if_empty(_), do: 1
-
   test "check default ship placement (horizontal)" do
     board = Board.new 5
     fleet = Fleet.default_fleet
     ship  = List.last(fleet.ships)
-    {:true, %Board{map: map}, _} =Place.custom(ship, board, 1, 1, :horizontal)
+    {state, %Board{map: map}} =Board.place_custom(ship, board, 1, 1, :horizontal)
+    assert state==:ok
     Enum.each(map, fn
-      {{1,1},value} ->  assert value=={1}
-      {{1,2},value} ->  assert value=={1}
-      {{_,_},value} ->  assert value=={:no_value}
-    end)
-  end
-
-  test "check default ship placement (vertical)" do
-    board = Board.new 5
-    fleet = Fleet.default_fleet
-    ship  = List.last(fleet.ships)
-
-    assert Place.custom(ship, board, 1, 1, :vertical)=={:true, %Board{
-      map: %{
-        {1, 1} => {1},
-        {1, 2} => {:no_value},
-        {1, 3} => {:no_value},
-        {1, 4} => {:no_value},
-        {1, 5} => {:no_value},
-        {2, 1} => {1},
-        {2, 2} => {:no_value},
-        {2, 3} => {:no_value},
-        {2, 4} => {:no_value},
-        {2, 5} => {:no_value},
-        {3, 1} => {:no_value},
-        {3, 2} => {:no_value},
-        {3, 3} => {:no_value},
-        {3, 4} => {:no_value},
-        {3, 5} => {:no_value},
-        {4, 1} => {:no_value},
-        {4, 2} => {:no_value},
-        {4, 3} => {:no_value},
-        {4, 4} => {:no_value},
-        {4, 5} => {:no_value},
-        {5, 1} => {:no_value},
-        {5, 2} => {:no_value},
-        {5, 3} => {:no_value},
-        {5, 4} => {:no_value},
-        {5, 5} => {:no_value}
-      },
-      n: 5
-    }}
-  end
+      {{1,1}, value} -> assert value==1 
+      {{2,1}, value} -> assert value==1
+      end)
+  end  
 
   test "Place ship out of bounds" do
     board = Board.new 5
     fleet = Fleet.default_fleet
     ship  = List.last(fleet.ships)
-
-    assert Place.custom(ship, board, 5, 1, :vertical)=={:false, "coordinates not available"}
+    {state, _board} = Board.place_custom(ship, board, 5, 1, :horizontal)
+    assert state==:error
   end
 
   test "Place ship on other ship" do
     board = Board.new 5
     fleet = Fleet.default_fleet
     last_ship  = List.last(fleet.ships)
-    {:true,new_board} = Place.custom(last_ship, board, 1, 1, :vertical)
+    {:ok,new_board} = Board.place_custom(last_ship, board, 1, 1, :vertical)
 
     first_ship = List.first(fleet.ships)
 
-    assert Place.custom(first_ship, new_board, 1, 1, :vertical)=={:false, "place taken"}
+    {state, _board}=Board.place_custom(first_ship, new_board, 1, 1, :vertical)
+
+    assert state==:error
   end
 
-  test "CUSTOM placement of two ships on 5x5 map" do
-    board = Board.new 5
+  test "CUSTOM placement of two ships on 10x10 map" do
+    board = Board.new 10
     fleet = Fleet.default_fleet
     first_ship  = List.first(fleet.ships)
-    {:true,new_board} = Place.custom(first_ship, board, 2, 2, :vertical)
+    {:ok,new_board} = Board.place_custom(first_ship, board, 1, 1, :horizontal)
 
     last_ship = List.last(fleet.ships)
 
-    assert Place.custom(last_ship, new_board, 1, 3, :vertical)=={true,
-    %Board{
-      map: %{
-        {1, 1} => {:no_value},
-        {1, 2} => {:no_value},
-        {1, 3} => {1},
-        {1, 4} => {:no_value},
-        {1, 5} => {:no_value},
-        {2, 1} => {:no_value},
-        {2, 2} => {3},
-        {2, 3} => {1},
-        {2, 4} => {:no_value},
-        {2, 5} => {:no_value},
-        {3, 1} => {:no_value},
-        {3, 2} => {3},
-        {3, 3} => {:no_value},
-        {3, 4} => {:no_value},
-        {3, 5} => {:no_value},
-        {4, 1} => {:no_value},
-        {4, 2} => {3},
-        {4, 3} => {:no_value},
-        {4, 4} => {:no_value},
-        {4, 5} => {:no_value},
-        {5, 1} => {:no_value},
-        {5, 2} => {:no_value},
-        {5, 3} => {:no_value},
-        {5, 4} => {:no_value},
-        {5, 5} => {:no_value}
-      },
-      n: 5
-    }}
+    {state, %Board{map: map}}=Board.place_custom(last_ship, new_board, 2, 2, :vertical)
+    assert state==:ok
+
+    Enum.each(map, fn
+      {{1,1},value} ->  assert value==3
+      {{2,1},value} ->  assert value==3
+      {{3,1},value} ->  assert value==3
+      {{2,2},value} ->  assert value==1
+      {{2,3},value} ->  assert value==1
+    end)
+
   end
 
-  test "RANDOM placement of ship on 5x5 map (count non :no_value value occurences)" do
+  test "RANDOM placement of ship on 5x5 map (count occurences)" do
     board = Board.new 5
     fleet = Fleet.default_fleet
     last_ship  = List.last(fleet.ships)
-    {:true, new_board} = Place.random(last_ship, board)
+    {:ok, new_board} = Board.place_random(last_ship, {:ok,board})    
+    assert Enum.reduce(new_board.map, 0, fn({_key, value}, acc) -> if value==last_ship.id, do: acc=acc+1 end)==2
 
-    assert count_ship_coordinates(new_board)==2
+
   end
 
-  test "RANDOM placement of two ships on 5x5 map (count non :no_value value occurences)" do
+  test "RANDOM placement of two ships on 5x5 map (count occurences)" do
     board = Board.new 5
     fleet = Fleet.default_fleet
     last_ship  = List.last(fleet.ships)
-    {:true, new_board} = Place.random(last_ship, board)
+    {:ok, new_board} = Board.place_random(last_ship, {:ok, board})
     first_ship = List.first(fleet.ships)
-    {:true, new_board} = Place.random(first_ship, new_board)
+    {:ok, new_board} = Board.place_random(first_ship, {:ok,new_board})
 
-    assert count_ship_coordinates(new_board)==5
+    assert Enum.reduce_while(new_board.map, 0, fn({_key, value}, acc) -> if value==first_ship.id, do: {:cont, acc + 1}, else: {:cont, acc} end)==3
+    assert Enum.reduce_while(new_board.map, 0, fn({_key, value}, acc) -> if value==last_ship.id, do: {:cont, acc + 1}, else: {:cont, acc} end)==2
   end
+
+
+  
 
 
 
