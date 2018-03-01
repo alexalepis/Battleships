@@ -80,7 +80,7 @@ defmodule Board do
     with x = rand(board.n - ship.length),
          y = rand(board.n - ship.length),
          orientation = elem(@orientation, rand(2) - 1),
-         true <- in_bounds?(ship, board, x, y, orientation),
+         true  <- in_bounds?(ship, board, x, y, orientation),
          true  <- is_not_placed?(ship, board),
          true  <- free_position?(ship, board, x, y, orientation) 
     do

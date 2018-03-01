@@ -5,6 +5,7 @@ defmodule Game do
     def new(game_id, game_settings) do
         %Game{  game_id:        game_id,
                 game_settings:  game_settings,
+                next_move:      :player1,
                 player1:        nil,
                 player2:        nil,
                }
@@ -19,6 +20,69 @@ defmodule Game do
         end
          
     end
+
+    #player1
+    #       id:            id,
+    #       name:          name,
+    #       my_board:      board, me ta dika tou ploia
+    #       shots_board:   board, keno pinaka 
+    #       enemy_fleet:   fleet
+
+    #player2
+    #       id:            id,
+    #       name:          name,
+    #       my_board:      board, me ta dika tou ploia
+    #       shots_board:   board, keno pinaka
+    #       enemy_fleet:   fleet
+
+    def load_enemy(game) do
+        cond do
+            game.next_move ==:player1 -> game.player2
+            game.next_move ==:player2 -> game.player1
+        end
+    end
+    def shot(player, game, x, y) do
+         
+        enemy_player = load_enemy(game)
+
+        with 
+            :ok  <- in_bounds?(x, y),
+            :ok  <- unique_shot?(player.shots_board, x, y),
+            :ok  <- hit?(enemy_player.my_board, x, y)
+        do
+             
+            shots_board = Board.replace_value( enemy_player.my_board.map, x, y, :hit)  
+            shots_board = Board.add_value( player.shots_board.map, x, y, :shot)
+            {:ok, }
+
+        else
+            {:error, :out_of_bounds} -> {:error, :out_of_bounds} 
+            {:error, :already_shot}  -> {:error, :already_shot}
+            :miss                    -> 
+        end
+    end
+
+    def hit?(board, x, y) do
+        case Board.get_position_value(board, x, y)  do
+            nil -> :miss
+            _   -> :ok
+        end
+    end
+
+    def unique_shot?(board, x, y) do
+        case Board.get_position_value(board, x, y)  do
+            nil -> :ok
+            _   -> {:error, :already_shot}
+        end
+    end
+
+    def in_bounds?(x, y) do
+       case  x<= game.board.n and x<= game.board.n do
+           true  -> :ok
+           false -> {:error, :out_of_bounds}
+       end
+    end
+ 
 
 
     
