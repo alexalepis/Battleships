@@ -1,13 +1,12 @@
 defmodule Game do
 
-    defstruct [:game_id,:game_settings, :player1, :player2]
+    defstruct [:game_id, :game_settings, :current_player, :enemy_player]
     
-    def new(game_id, game_settings) do
+    def new(game_id, game_settings, first_move) do
         %Game{  game_id:        game_id,
                 game_settings:  game_settings,
-                next_move:      :player1,
-                player1:        nil,
-                player2:        nil,
+                current_player:        nil,
+                enemy_player:        nil,
                }
     end
 
@@ -15,56 +14,47 @@ defmodule Game do
         player = Player.new(id, name, game.game_settings.board, game.game_settings.fleet)
 
         cond do
-            game.player1 == nil -> %{game| player1: player} 
-            game.player2 == nil -> %{game| player2: player} 
+            game.current_player == nil -> %{game| current_player: player} 
+            game.enemy_player == nil -> %{game| enemy_player: player} 
         end
          
     end
 
-    #player1
-    #       id:            id,
-    #       name:          name,
-    #       my_board:      board, me ta dika tou ploia
-    #       shots_board:   board, keno pinaka 
-    #       enemy_fleet:   fleet
-
-    #player2
-    #       id:            id,
-    #       name:          name,
-    #       my_board:      board, me ta dika tou ploia
-    #       shots_board:   board, keno pinaka
-    #       enemy_fleet:   fleet
-
-    def load_enemy(game) do
-        cond do
-            game.next_move ==:player1 -> game.player2
-            game.next_move ==:player2 -> game.player1
+    def make_move(game, x, y) do
+        {state, result}=shot(game, x, y)
+        case {state, result} do
+            {:error, :out_of_bounds} -> IO.puts("Shot out of bounds")
+            {:error, :already_shot}  -> IO.puts("This shot has already been placed")
+            {:error, :miss}          -> current_shot_board=Board.add_value(game.current_player.shot_board, x, y, :miss)
+            {:ok, hit_ship}          -> 
+                Board.add_value(game.current_player.shot_board, x, y, :hit)
+                Board.replace_value(game.enemy_player.my_board, x, y, :hit)
+                #Apply change on ship
         end
-    end
-    def shot(player, game, x, y) do
-         
-        enemy_player = load_enemy(game)
 
-        with 
-            :ok  <- in_bounds?(x, y),
-            :ok  <- unique_shot?(player.shots_board, x, y),
-            :ok  <- hit?(enemy_player.my_board, x, y)
+        #Check if current player won or else go to next move
+
+        #RETURN GAME BUT SWAP PLAYERS SO 
+        #IN THE NEXT MOVE, CURRENT_PLAYER IS 
+        #THIS MOVE's ENEMY_PLAYER
+    end
+
+    def shot(game, x, y) do
+        with :ok  <- in_bounds?(game, x, y),
+             :ok  <- unique_shot?(current_player.shot_board, x, y),
+             :ok  <- hit?(enemy_player.my_board, x, y)
         do
-             
-            shots_board = Board.replace_value( enemy_player.my_board.map, x, y, :hit)  
-            shots_board = Board.add_value( player.shots_board.map, x, y, :shot)
-            {:ok, }
-
+            {:ok, Board.get_position_value(enemy_player.my_board, x, y)}
         else
             {:error, :out_of_bounds} -> {:error, :out_of_bounds} 
             {:error, :already_shot}  -> {:error, :already_shot}
-            :miss                    -> 
+            {:error, :miss}          -> {:error, :miss}
         end
     end
 
     def hit?(board, x, y) do
         case Board.get_position_value(board, x, y)  do
-            nil -> :miss
+            nil -> {:error, :miss}
             _   -> :ok
         end
     end
@@ -76,8 +66,8 @@ defmodule Game do
         end
     end
 
-    def in_bounds?(x, y) do
-       case  x<= game.board.n and x<= game.board.n do
+    def in_bounds?(game, x, y) do
+       case  x<= game.board.n and y<= game.board.n do
            true  -> :ok
            false -> {:error, :out_of_bounds}
        end
