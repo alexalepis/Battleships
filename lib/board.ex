@@ -56,8 +56,9 @@ defmodule Board do
   def place_custom(ship, board, x, y, orientation) do
     with true <- in_bounds?(ship, board, x, y, orientation),
          true <- is_not_placed?(ship, board),
-         true <- Enum.any?(board.map, fn {_, value} -> value != ship.id end) do
-      {:ok, place_ship(ship, board, x, y, orientation)}
+         true <- free_position?(ship, board, x, y, orientation) 
+    do
+        {:ok, place_ship(ship, board, x, y, orientation)}
     else
       false -> {:error, board}
     end
