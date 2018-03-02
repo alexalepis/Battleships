@@ -1,12 +1,12 @@
 defmodule Player do
     
-    defstruct [:id, :name, :my_board, :enemy_board, :enemy_fleet]
+    defstruct [:id, :name, :my_board, :shot_board, :enemy_fleet]
 
     def new(id, name, board, fleet) do
         %Player{ id:            id,
                  name:          name,
                  my_board:      board,
-                 enemy_board:   board,
+                 shot_board:    board,
                  enemy_fleet:   fleet
                 }
     end
