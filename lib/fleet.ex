@@ -33,8 +33,8 @@ defmodule Fleet do
     def default_fleet do
       
         new("default_fleet")
-        |> add_ship(1, :ship1, 2)
-        |> add_ship(2, :ship2, 1)
+        |> add_ship(1, :ship1, 1)
+        |> add_ship(2, :ship2, 2)
         |> add_ship(3, :ship3, 3)
     end
   end
