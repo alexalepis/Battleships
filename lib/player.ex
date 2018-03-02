@@ -6,7 +6,7 @@ defmodule Player do
         %Player{ id:            id,
                  name:          name,
                  my_board:      board,
-                 shot_board:   board,
+                 shot_board:    board,
                  enemy_fleet:   fleet
                 }
     end

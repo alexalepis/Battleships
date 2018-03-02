@@ -2,7 +2,7 @@ defmodule Game do
 
     defstruct [:game_id, :game_settings, :current_player, :enemy_player]
     
-    def new(game_id, game_settings, first_move) do
+    def new(game_id, game_settings) do
         %Game{  game_id:        game_id,
                 game_settings:  game_settings,
                 current_player:        nil,
@@ -27,24 +27,25 @@ defmodule Game do
             {:error, :already_shot}  -> IO.puts("This shot has already been placed")
             {:error, :miss}          -> current_shot_board=Board.add_value(game.current_player.shot_board, x, y, :miss)
             {:ok, hit_ship}          -> 
-                Board.add_value(game.current_player.shot_board, x, y, :hit)
-                Board.replace_value(game.enemy_player.my_board, x, y, :hit)
-                #Apply change on ship
+                current_player_shot_board = Board.add_value(game.current_player.shot_board, x, y, :hit)
+                enemy_player_board = Board.replace_value(game.enemy_player.my_board, x, y, :hit)
+                #How will we change the correct ship? We have its ID.
+                #current_player_enemy_ships = current_player.enemy_fleet
         end
 
         #Check if current player won or else go to next move
 
-        #RETURN GAME BUT SWAP PLAYERS SO 
+        #RETURN GAME BUT FIRST SWAP PLAYERS SO 
         #IN THE NEXT MOVE, CURRENT_PLAYER IS 
         #THIS MOVE's ENEMY_PLAYER
     end
 
     def shot(game, x, y) do
         with :ok  <- in_bounds?(game, x, y),
-             :ok  <- unique_shot?(current_player.shot_board, x, y),
-             :ok  <- hit?(enemy_player.my_board, x, y)
+             :ok  <- unique_shot?(game.current_player.shot_board, x, y),
+             :ok  <- hit?(game.enemy_player.my_board, x, y)
         do
-            {:ok, Board.get_position_value(enemy_player.my_board, x, y)}
+            {:ok, Board.get_position_value(game.enemy_player.my_board, x, y)}
         else
             {:error, :out_of_bounds} -> {:error, :out_of_bounds} 
             {:error, :already_shot}  -> {:error, :already_shot}
@@ -67,7 +68,7 @@ defmodule Game do
     end
 
     def in_bounds?(game, x, y) do
-       case  x<= game.board.n and y<= game.board.n do
+       case  x<= game.current_player.my_board.n and y<= game.current_player.my_board.n do
            true  -> :ok
            false -> {:error, :out_of_bounds}
        end
