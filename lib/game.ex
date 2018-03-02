@@ -19,20 +19,36 @@ defmodule Game do
         end
          
     end
+    def apply_move(game, x, y) do
+        new_shot_board=Board.add_value(game.current_player.shot_board, x, y, :miss)
+        game=%{game | current_player:  %{game.current_player | shot_board: new_shot_board}}
+    end
+
+    def apply_move(game, x, y, hit_ship_id) do
+        new_shot_board      = Board.add_value(game.current_player.shot_board, x, y, :hit)
+        enemy_player_board  = Board.replace_value(game.enemy_player.my_board, x, y, :hit)
+        
+        new_fleet = game.current_player.enemy_fleet.ships 
+        |> Enum.reduce([], fn x=%Ship{id: ship_id, length: ship_length, name: ship_name}, acc-> if ship_id==hit_ship_id do [%Ship{id: hit_ship_id, length: ship_length-1, name: ship_name} | acc]  else [x | acc]end  end )
+        
+        game=%{game | current_player:  %{game.current_player | shot_board: new_shot_board, enemy_fleet: %{game.current_player.enemy_fleet | ships: new_fleet}},
+                      enemy_player:    %{game.enemy_player   | my_board: enemy_player_board}}
+    end
 
     def make_move(game, x, y) do
         {state, result}=shot(game, x, y)
         case {state, result} do
-            {:error, :out_of_bounds} -> IO.puts("Shot out of bounds")
-            {:error, :already_shot}  -> IO.puts("This shot has already been placed")
-            {:error, :miss}          -> current_shot_board=Board.add_value(game.current_player.shot_board, x, y, :miss)
-            {:ok, hit_ship}          -> 
-                current_player_shot_board = Board.add_value(game.current_player.shot_board, x, y, :hit)
-                enemy_player_board = Board.replace_value(game.enemy_player.my_board, x, y, :hit)
+            {:error, :out_of_bounds} -> IO.puts("Shot out of bounds") #Mano ayta tha allaksoun, einai proxeira
+            {:error, :already_shot}  -> IO.puts("This shot has already been placed") #Mano ayta tha allaksoun, einai proxeira
+            {:error, :miss}          -> game = apply_move(game, x, y)
+            {:ok, hit_ship}          -> game = apply_move(game, x, y, hit_ship)
+
+
                 #How will we change the correct ship? We have its ID.
-                #current_player_enemy_ships = current_player.enemy_fleet
+                
         end
 
+        game=%{game | current_player: game.enemy_player, enemy_player: game.current_player}
         #Check if current player won or else go to next move
 
         #RETURN GAME BUT FIRST SWAP PLAYERS SO 
