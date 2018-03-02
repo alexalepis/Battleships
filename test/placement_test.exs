@@ -61,7 +61,7 @@ defmodule PlacementTest do
     fleet = Fleet.default_fleet
     last_ship  = List.last(fleet.ships)
     {:ok, new_board} = Board.place_random(last_ship, {:ok,board})    
-    assert Enum.reduce(new_board.map, 0, fn({_key, value}, acc) -> if value==last_ship.id, do: acc=acc+1 end)==1
+    assert Enum.reduce(new_board.map, 0, fn({_key, value}, acc) -> if value==last_ship.id, do: acc+1 end)==1
 
 
   end
@@ -77,6 +77,8 @@ defmodule PlacementTest do
     assert Enum.reduce_while(new_board.map, 0, fn({_key, value}, acc) -> if value==first_ship.id, do: {:cont, acc + 1}, else: {:cont, acc} end)==3
     assert Enum.reduce_while(new_board.map, 0, fn({_key, value}, acc) -> if value==last_ship.id, do: {:cont, acc + 1}, else: {:cont, acc} end)==1
   end
+
+
 
 
   
