@@ -21,36 +21,51 @@ defmodule Game do
     end
     def apply_move(game, x, y) do
         new_shot_board=Board.add_value(game.current_player.shot_board, x, y, :miss)
-        game=%{game | current_player:  %{game.current_player | shot_board: new_shot_board}}
+        %{game | current_player:  %{game.current_player | shot_board: new_shot_board}}
     end
 
     def apply_move(game, x, y, hit_ship_id) do
         new_shot_board      = Board.add_value(game.current_player.shot_board, x, y, :hit)
-        enemy_player_board  = Board.replace_value(game.enemy_player.my_board, x, y, :hit)
-        
-        new_fleet = game.current_player.enemy_fleet.ships 
-        |> Enum.reduce([], fn 
-                              x=%Ship{id: hit_ship_id, length: ship_length}, acc -> [ %{x | id: hit_ship_id, length: ship_length-1} | acc]  
-                              x=%Ship{id: _}, acc                                -> [ x | acc]  
-                            end )
-        
-        game=%{game | current_player:  %{game.current_player | shot_board: new_shot_board,
-                                                               enemy_fleet: %{game.current_player.enemy_fleet | ships: new_fleet}},
+        enemy_player_board  = Board.replace_value(game.enemy_player.my_board, x, y, {:hit, hit_ship_id})
+        enemy_ships         = Ship.reduce_length(game.current_player.enemy_fleet.ships, hit_ship_id)
+                
+        %{game | current_player:  %{game.current_player | shot_board: new_shot_board,
+                                                               enemy_fleet: %{game.current_player.enemy_fleet | ships: enemy_ships}},
                       enemy_player:    %{game.enemy_player   | my_board: enemy_player_board}}
     end
 
     def make_move(game, x, y) do
         {state, result}=shot(game, x, y)
         case {state, result} do
-            {:error, :out_of_bounds} -> IO.puts("Shot out of bounds") 
+            {:error, :out_of_bounds} -> IO.puts("Shot out of bounds")  #{:error, :out_of_bounds} 
                                         game
-            {:error, :already_shot}  -> IO.puts("This shot has already been placed") 
+            {:error, :already_shot}  -> IO.puts("This shot has already been placed")  #{:error, :already_shot}
                                         game
             {:error, :miss}          -> apply_move(game, x, y) 
                                         |> swap_players()
             {:ok, hit_ship}          -> apply_move(game, x, y, hit_ship) 
+                                        |> check_sunk(hit_ship)
                                         |> swap_players()
-               
+                                        |> winner()
+        end
+    end
+
+    def check_sunk(game, hit_ship_id) do
+        
+        case Ship.ship_destroyed?( game.current_player.enemy_fleet.ships, hit_ship_id) do
+            true -> enemy_board = Board.replace_values( game.enemy_player.my_board)
+                    %{game | enemy_player:  %{game.enemy_player | my_board: enemy_board}}
+            _    -> game
+        end
+    end
+
+    def winner(game) do
+        cond do
+            Ship.ships_destroyed?( game.current_player.enemy_fleet.ships) == true -> IO.puts "winner #{game.current_player.id}"  #{:ok, :game.current_player.id}
+                                                                            game
+            Ship.ships_destroyed?( game.enemy_player.enemy_fleet.ships)   == true -> IO.puts "winner #{game.enemy_player.id}" #{:ok, :game.enemy_player.id}
+                                                                            game
+            true                                                         -> game
         end
     end
 

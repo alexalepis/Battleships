@@ -37,4 +37,7 @@ defmodule Fleet do
         |> add_ship(2, :ship2, 2)
         |> add_ship(3, :ship3, 3)
     end
+
+    
+
   end

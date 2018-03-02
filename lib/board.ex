@@ -29,6 +29,14 @@ defmodule Board do
     %{board | map: new_map}
   end
 
+  def replace_values(board) do
+        Enum.reduce(board.map, %{}, fn 
+                                    {key, {:hit, id}}, acc -> Map.put(acc, key, {:sunk, id}) 
+                                    {key, value}, acc      -> Map.put(acc, key, value) 
+                                  end)
+  end
+
+
   def add_value(board, x, y, value) do
     new_map =
       board.map
@@ -36,6 +44,7 @@ defmodule Board do
 
     %{board | map: new_map}
   end
+
 
   @doc """
     Takes a board, an x, a y and a value as parameters and returns the board having replaced the value at the position (x,y) with the given value. 
