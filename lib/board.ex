@@ -30,10 +30,11 @@ defmodule Board do
   end
 
   def replace_values(board) do
-        Enum.reduce(board.map, %{}, fn 
+      new_map = Enum.reduce(board.map, %{}, fn 
                                     {key, {:hit, id}}, acc -> Map.put(acc, key, {:sunk, id}) 
                                     {key, value}, acc      -> Map.put(acc, key, value) 
                                   end)
+      %{board | map: new_map}
   end
 
 

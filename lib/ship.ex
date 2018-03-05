@@ -35,7 +35,7 @@ defmodule Ship do
 
   def ship_destroyed?(ships, hit_ship_id) do
     ships 
-    |> Enum.find_value( &(&1.id==hit_ship_id) )
+    |> Enum.find_value( &(&1.id==hit_ship_id and &1.length==0) )
   end
   
 end
