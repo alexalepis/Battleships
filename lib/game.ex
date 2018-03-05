@@ -52,11 +52,8 @@ defmodule Game do
 
     def check_sunk(game, hit_ship_id) do
         
-        Ship.ship_destroyed?( game.current_player.enemy_fleet.ships, hit_ship_id)|> IO.inspect
-        {game.current_player.enemy_fleet.ships, hit_ship_id} |> IO.inspect
-
         case Ship.ship_destroyed?( game.current_player.enemy_fleet.ships, hit_ship_id) do
-            true -> enemy_board = Board.replace_values( game.enemy_player.my_board) |> IO.inspect
+            true -> enemy_board = Board.replace_values( game.enemy_player.my_board)
                     %{game | enemy_player:  %{game.enemy_player | my_board: enemy_board}}
             _    -> game
         end
@@ -116,21 +113,3 @@ defmodule Game do
     
 end
 
-defmodule Game.Settings do
-
-    defstruct [:board, :random_place, :fleet]
-    
-    def new(board_size \\ 5, random_place \\ :true, default_fleet \\ :true ) do
-        
-        game_settings = %Game.Settings{ board: Board.new(board_size),
-                                        random_place: random_place}
-        case default_fleet do
-            :true -> %{game_settings | fleet: Fleet.default_fleet}
-            _     -> %{game_settings | fleet: nil}
-        end
-    end
-
-    def add_fleet(game_settings, fleet) do
-        %{game_settings | fleet: fleet}
-    end
-end
