@@ -18,7 +18,7 @@ defmodule Ship do
 
   def reduce_length(ships, hit_ship_id) do
     ships 
-    |> Enum.reduce([], fn x, acc -> if x.length == hit_ship_id do 
+    |> Enum.reduce([], fn x, acc -> if x.id == hit_ship_id do 
                                       [ %{x | length: x.length-1} | acc ]
                                     else 
                                       [ x | acc] 
