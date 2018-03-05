@@ -1,7 +1,17 @@
 defmodule Game do
 
     defstruct [:game_id, :game_settings, :current_player, :enemy_player]
-    
+
+    @opaque g :: %Game{ game_id:        game_id,
+                        game_settings:  %Game.Settings{},
+                        current_player: nil | %Player{},
+                        enemy_player:   nil | %Player{},
+    }
+    @type game_id :: any
+    @type player_id :: any
+    @type player_name :: any
+
+    @spec new(game_id, %Game.Settings{}) :: g
     def new(game_id, game_settings) do
         %Game{  game_id:        game_id,
                 game_settings:  game_settings,
@@ -10,6 +20,7 @@ defmodule Game do
                }
     end
 
+    @spec add_player(g, player_id, player_name) :: g
     def add_player(game, id, name) do
         player = Player.new(id, name, game.game_settings.board, game.game_settings.fleet)
 

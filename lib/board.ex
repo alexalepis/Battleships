@@ -83,7 +83,7 @@ defmodule Board do
   def place_random(_, {:error, board}), do: {:error, board}
 
   defp place_random(_, {_, board}, 100), do: {:error, board}
-  defp place_random(_, {:error, board}, _), do: {:error, board}
+  # defp place_random(_, {:error, board}, _), do: {:error, board}
 
   defp place_random(ship, {:ok, %Board{} = board}, fail_cnt) do
 
