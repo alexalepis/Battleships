@@ -1,3 +1,2 @@
 defmodule Battleships do
-  
 end
