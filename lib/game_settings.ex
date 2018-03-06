@@ -4,10 +4,8 @@ defmodule Game.Settings do
   """
   defstruct [:board, :random_place, :fleet]
 
-  @opaque t :: %Game.Settings{board: %Board{}, random_place: random_place, fleet: %Fleet{}}
+  @type t :: %__MODULE__{board: Board.t(), random_place: any(), fleet: Fleet.t()}
 
-  @type random_place :: boolean
-  @spec new() :: t
   def new(board_size \\ 5, random_place \\ true, default_fleet \\ true) do
     game_settings = %Game.Settings{board: Board.new(board_size), random_place: random_place}
 
@@ -17,7 +15,7 @@ defmodule Game.Settings do
     end
   end
 
-  @spec add_fleet(t, %Fleet{}) :: t
+  @spec add_fleet(t, Fleet.t()) :: t
   def add_fleet(game_settings, fleet) do
     %{game_settings | fleet: fleet}
   end

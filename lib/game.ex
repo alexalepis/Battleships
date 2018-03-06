@@ -10,6 +10,12 @@ defmodule Game do
   @type game_id :: any
   @type player_id :: any
   @type player_name :: any
+  @type t :: %__MODULE__{
+          game_id: any(),
+          game_settings: Game.Settings.t(),
+          current_player: nil | Player.t(),
+          enemy_player: nil | Player.t()
+        }
 
   @doc """
       Given an id and a struct of game settings it creates a new game with these parameters.
@@ -18,6 +24,13 @@ defmodule Game do
   def new(game_id, game_settings) do
     %Game{game_id: game_id, game_settings: game_settings, current_player: nil, enemy_player: nil}
   end
+  # @type game_id :: any
+  # @type player_id :: any
+  # @type player_name :: any
+  # @type x :: integer
+  # @type y :: integer
+  # @type hit_ship_id :: integer
+  # @type error_msg :: {:error, msg :: atom()}
 
   @doc """
       Adds the given player to the given game with the given ID.
@@ -25,12 +38,19 @@ defmodule Game do
   @spec add_player(g, player_id, player_name) :: g
   def add_player(game, id, name) do
     player = Player.new(id, name, game.game_settings.board, game.game_settings.fleet)
+  @spec new(any(), Game.Settings.t) :: t
+  def new(game_id, game_settings) do
+    %Game{game_id: game_id, game_settings: game_settings, current_player: nil, enemy_player: nil}
+  end
 
     cond do
       game.current_player == nil -> %{game | current_player: player}
       game.enemy_player == nil -> %{game | enemy_player: player}
     end
   end
+  @spec add_player(t, any(), any()) :: t
+  def add_player(game, id, name) do
+    player = Player.new(id, name, game.game_settings.board, game.game_settings.fleet)
 
   @doc """
   Applies a missed shot to the current players shot_board.
@@ -39,6 +59,11 @@ defmodule Game do
     new_shot_board = Board.add_value(game.current_player.shot_board, x, y, :miss)
     %{game | current_player: %{game.current_player | shot_board: new_shot_board}}
   end
+    cond do
+      game.current_player == nil -> %{game | current_player: player}
+      game.enemy_player == nil -> %{game | enemy_player: player}
+    end
+  end
 
   @doc """
       Applies a shot that hit the ship with the ID: hit_ship_id to the current player's shot board, the current player's enemy_ship list
@@ -46,6 +71,11 @@ defmodule Game do
   """
   def apply_move(game, x, y, hit_ship_id) do
     new_shot_board = Board.add_value(game.current_player.shot_board, x, y, :hit)
+  @spec apply_move(t, non_neg_integer(), non_neg_integer()) :: t
+  def apply_move(game, x, y) do
+    new_shot_board = Board.add_value(game.current_player.shot_board, x, y, :miss)
+    %{game | current_player: %{game.current_player | shot_board: new_shot_board}}
+  end
 
     enemy_player_board =
       Board.replace_value(game.enemy_player.my_board, x, y, {:hit, hit_ship_id})
@@ -89,6 +119,50 @@ defmodule Game do
         |> check_sunk(hit_ship)
         |> swap_players()
         |> winner()
+  @spec apply_move(t, non_neg_integer(), non_neg_integer(), integer()) :: t
+  def apply_move(game, x, y, hit_ship_id) do
+    new_shot_board = Board.add_value(game.current_player.shot_board, x, y, :hit)
+
+    enemy_player_board =
+      Board.replace_value(game.enemy_player.my_board, x, y, {:hit, hit_ship_id})
+
+    enemy_ships = Ship.reduce_length(game.current_player.enemy_fleet.ships, hit_ship_id)
+
+    %{
+      game
+      | current_player: %{
+          game.current_player
+          | shot_board: new_shot_board,
+            enemy_fleet: %{game.current_player.enemy_fleet | ships: enemy_ships}
+        },
+        enemy_player: %{game.enemy_player | my_board: enemy_player_board}
+    }
+  end
+
+  @spec make_move(t, non_neg_integer(), non_neg_integer()) :: t
+  def make_move(game, x, y) do
+    {state, result} = shot(game, x, y)
+
+    case {state, result} do
+      # {:error, :out_of_bounds} 
+      {:error, :out_of_bounds} ->
+        IO.puts("Shot out of bounds")
+        game
+
+      # {:error, :already_shot}
+      {:error, :already_shot} ->
+        IO.puts("This shot has already been placed")
+        game
+
+      {:error, :miss} ->
+        apply_move(game, x, y)
+        |> swap_players()
+
+      {:ok, hit_ship} ->
+        apply_move(game, x, y, hit_ship)
+        |> check_sunk(hit_ship)
+        |> swap_players()
+        |> winner()
     end
   end
 
@@ -103,12 +177,36 @@ defmodule Game do
 
       _ ->
         game
+  @spec check_sunk(t, integer()) :: t
+  def check_sunk(game, hit_ship_id) do
+    case Ship.ship_destroyed?(game.current_player.enemy_fleet.ships, hit_ship_id) do
+      true ->
+        enemy_board = Board.replace_values(game.enemy_player.my_board, hit_ship_id)
+        %{game | enemy_player: %{game.enemy_player | my_board: enemy_board}}
+
+      _ ->
+        game
     end
   end
 
   @doc """
       Checks if the player currently placed as the enemy player has won.
   """
+  def winner(game) do
+    cond do
+      # {:ok, :game.current_player.id}
+      Ship.ships_destroyed?(game.current_player.enemy_fleet.ships) == true ->
+        IO.puts("winner #{game.current_player.id}")
+        game
+
+      # {:ok, :game.enemy_player.id}
+      Ship.ships_destroyed?(game.enemy_player.enemy_fleet.ships) == true ->
+        IO.puts("winner #{game.enemy_player.id}")
+        game
+
+      true ->
+        game
+  @spec winner(t) :: t
   def winner(game) do
     cond do
       # {:ok, :game.current_player.id}
@@ -142,12 +240,31 @@ defmodule Game do
          :ok <- unique_shot?(game.current_player.shot_board, x, y),
          :ok <- hit?(game.enemy_player.my_board, x, y) do
       {:ok, Board.get_position_value(game.enemy_player.my_board, x, y)}
+  @spec swap_players(t) :: t
+  def swap_players(game) do
+    %{game | current_player: game.enemy_player, enemy_player: game.current_player}
+  end
+
+  @spec shot(t, non_neg_integer(), non_neg_integer()) :: {:ok, t} | {:error, atom()}
+  def shot(game, x, y) do
+    with :ok <- in_bounds?(game, x, y),
+         :ok <- unique_shot?(game.current_player.shot_board, x, y),
+         :ok <- hit?(game.enemy_player.my_board, x, y),
+         game <- Board.get_position_value(game.enemy_player.my_board, x, y) do
+      {:ok, game}
+    else
+      error -> error
     end
   end
 
   @doc """
      Checks if there is any ship at the position x, y on the board given.
   """
+  def hit?(board, x, y) do
+    case Board.get_position_value(board, x, y) do
+      nil -> {:error, :miss}
+      _ -> :ok
+  @spec hit?(Board.t(), non_neg_integer(), non_neg_integer()) :: :ok | {:error, :miss}
   def hit?(board, x, y) do
     case Board.get_position_value(board, x, y) do
       nil -> {:error, :miss}
@@ -162,12 +279,23 @@ defmodule Game do
     case Board.get_position_value(board, x, y) do
       nil -> :ok
       _ -> {:error, :already_shot}
+  @spec unique_shot?(Board.t(), non_neg_integer(), non_neg_integer()) ::
+          :ok | {:error, :already_shot}
+  def unique_shot?(board, x, y) do
+    case Board.get_position_value(board, x, y) do
+      nil -> :ok
+      _ -> {:error, :already_shot}
     end
   end
 
   @doc """
      Checks if a shot at x, y can be made according to the boundaries of the board given.
   """
+  def in_bounds?(game, x, y) do
+    case x <= game.current_player.my_board.n and y <= game.current_player.my_board.n do
+      true -> :ok
+      false -> {:error, :out_of_bounds}
+  @spec in_bounds?(t, non_neg_integer(), non_neg_integer()) :: :ok | {:error, :out_of_bounds}
   def in_bounds?(game, x, y) do
     case x <= game.current_player.my_board.n and y <= game.current_player.my_board.n do
       true -> :ok
