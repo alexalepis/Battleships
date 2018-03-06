@@ -31,11 +31,15 @@ defmodule Board do
     %{board | map: new_map}
   end
   @doc """
-    ALLAGH ONOMATOS replace_values /1    
+    Indicates the hit ships that have been hit on all the places they have been placed as sunk.   
   """
-  def replace_values(board) do
+  def replace_values(board, ship_id) do
       new_map = Enum.reduce(board.map, %{}, fn 
-                                    {key, {:hit, id}}, acc -> Map.put(acc, key, {:sunk, id}) 
+                                    {key, {:hit, id}}, acc -> if id == ship_id do 
+                                                                Map.put(acc, key, {:sunk, ship_id}) 
+                                                              else
+                                                                Map.put(acc, key, {:hit, id})
+                                                              end
                                     {key, value}, acc      -> Map.put(acc, key, value) 
                                   end)
       %{board | map: new_map}
@@ -108,7 +112,7 @@ defmodule Board do
   end
 
   @doc """
-    Makes sure the ship given has not already been placed in the board given. Returns true if the ship is OK to be placed.
+    Checks if the ship given has not already been placed on the board given. Returns true if the ship is OK to be placed.
   """
   def is_not_placed?(ship, board) do
     case Enum.any?(board.map, fn({_,value})-> value==ship.id end) do

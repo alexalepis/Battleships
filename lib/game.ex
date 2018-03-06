@@ -64,7 +64,7 @@ defmodule Game do
     def check_sunk(game, hit_ship_id) do
         
         case Ship.ship_destroyed?( game.current_player.enemy_fleet.ships, hit_ship_id) do
-            true -> enemy_board = Board.replace_values( game.enemy_player.my_board)
+            true -> enemy_board = Board.replace_values( game.enemy_player.my_board, hit_ship_id)
                     %{game | enemy_player:  %{game.enemy_player | my_board: enemy_board}}
             _    -> game
         end
