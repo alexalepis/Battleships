@@ -23,7 +23,7 @@ defmodule Game do
     @spec add_player(g, player_id, player_name) :: g
     def add_player(game, id, name) do
         player = Player.new(id, name, game.game_settings.board, game.game_settings.fleet)
-
+        
         cond do
             game.current_player == nil  -> %{game| current_player: player} 
             game.enemy_player == nil    -> %{game| enemy_player: player} 
