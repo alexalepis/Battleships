@@ -74,31 +74,33 @@ defmodule Game do
   """
   @spec make_move(t, non_neg_integer(), non_neg_integer()) :: t
   def make_move(game, x, y) do
-    if game.winner != nil do
-      {state, result} = shot(game, x, y)
+    
+    if game.winner == nil do
+        {state, result} = shot(game, x, y)
 
-      case {state, result} do
-        {:error, :out_of_bounds} ->
-          {:error, game, :out_of_bounds}
+        case {state, result} do
+          {:error, :out_of_bounds} ->
+            {:error, game, :out_of_bounds}
 
-        {:error, :already_shot} ->
-          {:error, game, :already_shot}
+          {:error, :already_shot} ->
+            {:error, game, :already_shot}
 
-        {:error, :miss} ->
-          apply_move(game, x, y)
-          |> swap_players()
+          {:error, :miss} ->
+            apply_move(game, x, y)
+            |> swap_players()
 
-          {:ok, game, :miss}
+            {:ok, game, :miss}
 
-        {:ok, hit_ship} ->
-          apply_move(game, x, y, hit_ship)
-          |> check_sunk(hit_ship)
-          |> swap_players()
-          |> winner()
+          {:ok, hit_ship} ->
+            apply_move(game, x, y, hit_ship)
+            |> check_sunk(hit_ship)
+            |> swap_players()
+            |> winner()
+        end
       else
         {:error, game, :game_ended}
       end
-    end
+    
   end
 
   @doc """
