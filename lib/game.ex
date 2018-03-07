@@ -1,8 +1,9 @@
 defmodule Game do
-  defstruct [:game_id, :game_settings, :current_player, :enemy_player]
+  defstruct [:game_id, :winner, :game_settings, :current_player, :enemy_player]
 
   @type t :: %__MODULE__{
           game_id: any(),
+          winner: nil | Player.t(),
           game_settings: Game.Settings.t(),
           current_player: nil | Player.t(),
           enemy_player: nil | Player.t()
@@ -11,10 +12,17 @@ defmodule Game do
   @doc """
       Given an id and a struct of game settings it creates a new game with these parameters.
   """
-  @spec new(any(), Game.Settings.t) :: t
+  @spec new(any(), Game.Settings.t()) :: t
   def new(game_id, game_settings) do
-    %Game{game_id: game_id, game_settings: game_settings, current_player: nil, enemy_player: nil}
+    %Game{
+      game_id: game_id,
+      winner: nil,
+      game_settings: game_settings,
+      current_player: nil,
+      enemy_player: nil
+    }
   end
+
   @doc """
       Adds the given player to the given game with the given ID.
   """
@@ -27,6 +35,7 @@ defmodule Game do
       game.enemy_player == nil -> %{game | enemy_player: player}
     end
   end
+
   @doc """
   Applies a missed shot to the current players shot_board.
   """
@@ -35,6 +44,7 @@ defmodule Game do
     new_shot_board = Board.add_value(game.current_player.shot_board, x, y, :miss)
     %{game | current_player: %{game.current_player | shot_board: new_shot_board}}
   end
+
   @doc """
       Applies a shot that hit the ship with the ID: hit_ship_id to the current player's shot board, the current player's enemy_ship list
       and the enemy player's board.
@@ -58,33 +68,36 @@ defmodule Game do
         enemy_player: %{game.enemy_player | my_board: enemy_player_board}
     }
   end
+
   @doc """
       Makes a move as the current player playing against the enemy player.
   """
   @spec make_move(t, non_neg_integer(), non_neg_integer()) :: t
   def make_move(game, x, y) do
-    {state, result} = shot(game, x, y)
+    if game.winner != nil do
+      {state, result} = shot(game, x, y)
 
-    case {state, result} do
-      # {:error, :out_of_bounds} 
-      {:error, :out_of_bounds} ->
-        IO.puts("Shot out of bounds")
-        game
+      case {state, result} do
+        {:error, :out_of_bounds} ->
+          {:error, game, :out_of_bounds}
 
-      # {:error, :already_shot}
-      {:error, :already_shot} ->
-        IO.puts("This shot has already been placed")
-        game
+        {:error, :already_shot} ->
+          {:error, game, :already_shot}
 
-      {:error, :miss} ->
-        apply_move(game, x, y)
-        |> swap_players()
+        {:error, :miss} ->
+          apply_move(game, x, y)
+          |> swap_players()
 
-      {:ok, hit_ship} ->
-        apply_move(game, x, y, hit_ship)
-        |> check_sunk(hit_ship)
-        |> swap_players()
-        |> winner()
+          {:ok, game, :miss}
+
+        {:ok, hit_ship} ->
+          apply_move(game, x, y, hit_ship)
+          |> check_sunk(hit_ship)
+          |> swap_players()
+          |> winner()
+      else
+        {:error, game, :game_ended}
+      end
     end
   end
 
@@ -103,34 +116,28 @@ defmodule Game do
     end
   end
 
-    @doc """
+  @doc """
       Checks if the player currently placed as the enemy player has won.
   """
-  @spec winner(t) :: t
+  @spec winner(t) :: {:ok, t, :winner_enemy | :no_winner}
   def winner(game) do
     cond do
-      # {:ok, :game.current_player.id}
       Ship.ships_destroyed?(game.current_player.enemy_fleet.ships) == true ->
-        IO.puts("winner #{game.current_player.id}")
-        game
-
-      # {:ok, :game.enemy_player.id}
-      Ship.ships_destroyed?(game.enemy_player.enemy_fleet.ships) == true ->
-        IO.puts("winner #{game.enemy_player.id}")
-        game
+        {:ok, %{game | winner: game.enemy_player}, :winner_enemy}
 
       true ->
-        game
+        {:ok, game, :no_winner}
     end
   end
 
-    @doc """
+  @doc """
       Swaps the player's structs in the game struct so in that the next make_move belongs to the other player.
   """
   @spec swap_players(t) :: t
   def swap_players(game) do
     %{game | current_player: game.enemy_player, enemy_player: game.current_player}
   end
+
   @doc """
      Checks if the x and y given are in the boundaries of the enemy's map, if the shot has not already been
      placed and if the shot hits any ships when it's made. If it does, it returns the hit ship's id.
