@@ -71,7 +71,7 @@ defmodule GameTest do
     ship_to_hit =
       Enum.find(game.enemy_player.enemy_fleet.ships, fn x -> x.id == ship_to_hit_id end)
 
-    game = Game.make_move(game, 1, 1)
+    {:ok, game, :no_winner} = Game.make_move(game, 1, 1)
 
     assert Board.get_position_value(game.current_player.my_board, 1, 1) == {:hit, 3}
     assert Board.get_position_value(game.enemy_player.shot_board, 1, 1) == :hit
@@ -85,7 +85,7 @@ defmodule GameTest do
     ship_to_hit =
       Enum.find(game.enemy_player.enemy_fleet.ships, fn x -> x.id == ship_to_hit_id end)
 
-    game = Game.make_move(game, 1, 1)
+    {:ok, game, :no_winner} = Game.make_move(game, 1, 1)
 
     assert Board.get_position_value(game.current_player.my_board, 1, 1) == {:hit, 2}
     assert Board.get_position_value(game.enemy_player.shot_board, 1, 1) == :hit
