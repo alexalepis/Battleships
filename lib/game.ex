@@ -92,7 +92,7 @@ defmodule Game do
             {:ok, game, :miss}
 
           {:ok, hit_ship} ->
-            apply_move(game, x, y, hit_ship)
+             = apply_move(game, x, y, hit_ship)
             |> check_sunk(hit_ship)
             |> swap_players()
             |> winner()
@@ -128,7 +128,7 @@ defmodule Game do
         {:ok, %{game | winner: game.enemy_player}, :winner_enemy}
 
       true ->
-        {:ok, game, :no_winner}
+        {:ok, game, :hit}
     end
   end
 
