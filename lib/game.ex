@@ -72,9 +72,9 @@ defmodule Game do
   @doc """
       Makes a move as the current player playing against the enemy player.
   """
-  @spec make_move(t, non_neg_integer(), non_neg_integer()) :: t
+  @spec make_move(t, non_neg_integer(), non_neg_integer()) :: {:error, t, atom()}
   def make_move(game, x, y) do
-    
+
     if game.winner == nil do
         {state, result} = shot(game, x, y)
 
@@ -100,7 +100,7 @@ defmodule Game do
       else
         {:error, game, :game_ended}
       end
-    
+
   end
 
   @doc """
