@@ -86,7 +86,7 @@ defmodule Game do
             {:error, game, :already_shot}
 
           {:error, :miss} ->
-            apply_move(game, x, y)
+            game = apply_move(game,x, y)
             |> swap_players()
 
             {:ok, game, :miss}
@@ -125,7 +125,7 @@ defmodule Game do
   def winner(game) do
     cond do
       Ship.ships_destroyed?(game.current_player.enemy_fleet.ships) == true ->
-        {:ok, %{game | winner: game.enemy_player}, :winner_enemy}
+        {:ok, %{game | winner: game.enemy_player}, :winner}
 
       true ->
         {:ok, game, :hit}
