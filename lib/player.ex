@@ -1,6 +1,6 @@
 defmodule Player do
   @moduledoc """
-    Player is responsible for all action concerning the player creation-initialization, changes and ship placement strategy. 
+    Player is responsible for all action concerning the player creation-initialization, changes and ship placement strategy.
   """
 
   defstruct [:id, :name, :my_board, :shot_board, :enemy_fleet]
@@ -14,7 +14,7 @@ defmodule Player do
           }
   @type t :: %__MODULE__{}
   @doc """
-  Creates a new player putting the values given as parameters to a struct, which it returns. 
+  Creates a new player putting the values given as parameters to a struct, which it returns.
   """
   @spec new(id :: any(), name :: any(), Board.t(), Fleet.t()) :: p
   def new(id, name, board, fleet) do
@@ -29,8 +29,8 @@ defmodule Player do
   end
 
   @doc """
-  Given a player's struct, a ship, coordinates (x and y) and orientation, place_custom /5 
-  places the given players ship on the given player's board accoring to the coordinates and orientation.  
+  Given a player's struct, a ship, coordinates (x and y) and orientation, place_custom /5
+  places the given players ship on the given player's board accoring to the coordinates and orientation.
   """
   @spec place_custom(p, Ship.t(), integer(), integer(), atom()) :: p
   def place_custom(player, ship, x, y, orientation) do
@@ -49,7 +49,6 @@ defmodule Player do
         IO.puts("Error placement")
         player
 
-      # UI.print(board)
       {:ok, board} ->
         %{player | my_board: board}
     end
