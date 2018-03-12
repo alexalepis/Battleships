@@ -46,7 +46,7 @@ defmodule Player do
   def is_placed(place_result, player) do
     case place_result do
       {:error, _} ->
-        IO.puts("Error placement")
+        # IO.puts("Error placement")
         player
 
       {:ok, board} ->
